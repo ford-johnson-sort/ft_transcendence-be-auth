@@ -1,17 +1,19 @@
-# authapp/views.py
+from urllib.parse import urlencode
 from datetime import timedelta
-from django.utils import timezone
+
 import jwt
 import requests
-from .models import User
-from urllib.parse import urlencode
-from django.conf import settings
 # from django.http import JsonResponse
+from django.utils import timezone
+from django.conf import settings
 from django.shortcuts import redirect
 from django.urls import reverse
 
+from .models import User
+
 
 def oauth_index(request):
+    """checks for user cookie, and redirects to 42 API if needed"""
     # TODO: check user has already authenticated
     base_url = 'https://api.intra.42.fr/oauth/authorize'
     query_params = {
@@ -25,6 +27,7 @@ def oauth_index(request):
 
 
 def oauth_callback(request):
+    """handles OAuth callback from 42 API"""
     # fetch token from 42 API
     token = requests.post(
         url='https://api.intra.42.fr/oauth/token',
@@ -39,8 +42,7 @@ def oauth_callback(request):
     if token.status_code != 200:
         # TODO handle error
         raise Exception
-    else:
-        token = token.json()
+    token = token.json()
 
     # fetch user information from 42 API
     profile = requests.get(
@@ -52,12 +54,11 @@ def oauth_callback(request):
     if profile.status_code != 200:
         # TODO handle error
         raise Exception
-    else:
-        profile = profile.json()
+    profile = profile.json()
 
     # write user information to Database
     user = User.objects.filter(intra=profile['login']).first()
-    new_user = (user is None)
+    new_user = user is None
     if new_user:
         user = User(
             intra=profile['login'],
@@ -72,15 +73,17 @@ def oauth_callback(request):
     else:
         user.token_access = token['access_token']
         user.token_refresh = token['refresh_token']
-        user.token_expire = timezone.now(
-        ) + timedelta(seconds=token['expires_in'])
+        user.token_expire = timezone.now() + \
+            timedelta(seconds=token['expires_in'])
     user.save()
 
     # create JWT and return
     payload = {
         'user_id': user.pk,
         'username': user.intra,
-        'exp': timezone.now() + timedelta(seconds=min(settings.JWT_EXP_DELTA_SECONDS, token['expires_in']))
+        'exp': timezone.now() +
+        timedelta(seconds=min(
+            settings.JWT_EXP_DELTA_SECONDS, token['expires_in']))
     }
     token = jwt.encode(payload, settings.JWT_SECRET,
                        algorithm=settings.JWT_ALGORITHM)

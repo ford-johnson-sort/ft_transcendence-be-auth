@@ -5,21 +5,21 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 
 # secrets
 assert 'POSTGRES_PASSWORD_FILE' in os.environ, 'POSTGRES PASSWORD FILE NOT GIVEN'
-with open(os.environ.get('POSTGRES_PASSWORD_FILE'), 'r') as f:
+with open(os.environ.get('POSTGRES_PASSWORD_FILE'), 'r', encoding='utf-8') as f:
     DB_PASSWORD = f.read()
 assert 'DJANGO_SECRET_FILE' in os.environ, 'DJANGO SECRET FILE NOT GIVEN'
-with open(os.environ.get('DJANGO_SECRET_FILE'), 'r') as f:
+with open(os.environ.get('DJANGO_SECRET_FILE'), 'r', encoding='utf-8') as f:
     SECRET_KEY = f.read()
 assert 'JWT_SECRET_FILE' in os.environ, 'JWT SECRET FILE NOT GIVEN'
-with open(os.environ.get('JWT_SECRET_FILE'), 'r') as f:
+with open(os.environ.get('JWT_SECRET_FILE'), 'r', encoding='utf-8') as f:
     JWT_SECRET = f.read()
 JWT_ALGORITHM = 'HS256'
 JWT_EXP_DELTA_SECONDS = 3600
 assert 'OAUTH_UID_FILE' in os.environ, 'OAUTH UID FILE NOT GIVEN'
-with open(os.environ.get('OAUTH_UID_FILE'), 'r') as f:
+with open(os.environ.get('OAUTH_UID_FILE'), 'r', encoding='utf-8') as f:
     OAUTH_UID = f.read()
 assert 'OAUTH_SECRET_FILE' in os.environ, 'OAUTH SECRET FILE NOT GIVEN'
-with open(os.environ.get('OAUTH_SECRET_FILE'), 'r') as f:
+with open(os.environ.get('OAUTH_SECRET_FILE'), 'r', encoding='utf-8') as f:
     OAUTH_SECRET = f.read()
 
 # debug and host settings
