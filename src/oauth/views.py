@@ -29,28 +29,38 @@ def oauth_index(request):
 def oauth_callback(request):
     """handles OAuth callback from 42 API"""
     # fetch token from 42 API
-    token = requests.post(
-        url='https://api.intra.42.fr/oauth/token',
-        data={
-            'code': request.GET['code'],
-            'client_id': settings.OAUTH_UID,
-            'client_secret': settings.OAUTH_SECRET,
-            'grant_type': 'authorization_code',
-            'redirect_uri': f"https://{request.get_host()}{request.path}"
-        }
-    )
+    try:
+        token = requests.post(
+            url='https://api.intra.42.fr/oauth/token',
+            data={
+                'code': request.GET['code'],
+                'client_id': settings.OAUTH_UID,
+                'client_secret': settings.OAUTH_SECRET,
+                'grant_type': 'authorization_code',
+                'redirect_uri': f"https://{request.get_host()}{request.path}"
+            },
+            timeout=5
+        )
+    except requests.exceptions.Timeout as e:
+        # TODO handle error
+        raise e
     if token.status_code != 200:
         # TODO handle error
         raise Exception
     token = token.json()
 
     # fetch user information from 42 API
-    profile = requests.get(
-        url='https://api.intra.42.fr/v2/me',
-        headers={
-            'Authorization': f"Bearer {token['access_token']}"
-        }
-    )
+    try:
+        profile = requests.get(
+            url='https://api.intra.42.fr/v2/me',
+            headers={
+                'Authorization': f"Bearer {token['access_token']}"
+            },
+            timeout=5
+        )
+    except requests.exceptions.Timeout as e:
+        # TODO handle error
+        raise e
     if profile.status_code != 200:
         # TODO handle error
         raise Exception
