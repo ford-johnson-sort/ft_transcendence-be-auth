@@ -1,15 +1,15 @@
 # authapp/views.py
-import datetime
+from datetime import timedelta
+from django.utils import timezone
 import jwt
 import requests
+from .models import User
 from urllib.parse import urlencode
 from django.conf import settings
-from django.http import JsonResponse
+# from django.http import JsonResponse
 from django.shortcuts import redirect
 from django.urls import reverse
-from django.views.decorators.csrf import csrf_exempt
 
-@csrf_exempt
 def oauth_index(request):
   # TODO: check user has already authenticated
   base_url = 'https://api.intra.42.fr/oauth/authorize'
@@ -20,9 +20,11 @@ def oauth_index(request):
   }
   return redirect(f'{base_url}?{urlencode(query_params)}')
 
-@csrf_exempt
+# TODO: use refresh token
+
 def oauth_callback(request):
-  resp = requests.post(
+  # fetch token from 42 API
+  token = requests.post(
     url = 'https://api.intra.42.fr/oauth/token',
     data = {
       'code': request.GET['code'],
@@ -32,19 +34,51 @@ def oauth_callback(request):
       'redirect_uri': f"https://{request.get_host()}{request.path}"
     }
   )
+  if token.status_code != 200:
+    # TODO handle error
+    raise Exception
+  else:
+    token = token.json()
+  
+  # fetch user information from 42 API
+  profile = requests.get(
+    url='https://api.intra.42.fr/v2/me',
+    headers = {
+      'Authorization': f"Bearer {token['access_token']}"
+    }
+  )
+  if profile.status_code != 200:
+    # TODO handle error
+    raise Exception
+  else:
+    profile = profile.json()
 
-  # TODO: fetch user info from 42 server
-  user_info = {
-      'id': 1,
-      'username': 'testuser',
-      'email': 'testuser@example.com',
-  }
+  # write user information to Database
+  user = User.objects.filter(intra=profile['login']).first()
+  new_user = (user is None)
+  if new_user:
+    user = User(
+      intra=profile['login'],
+      name=profile['usual_full_name'],
+      email=profile['email'],
 
-  # TODO: save user info and jwt key to database
+      token_access=token['access_token'],
+      token_refresh=token['refresh_token'],
+      token_expire = timezone.now() + timedelta(seconds=token['expires_in'])
+    )
+  else:
+    user.token_access = token['access_token']
+    user.token_refresh = token['refresh_token']
+    user.token_expire = timezone.now() + timedelta(seconds=token['expires_in'])
+  user.save()
+
+  # create JWT and return
   payload = {
-      'user_id': user_info['id'],
-      'username': user_info['username'],
-      'exp': datetime.datetime.utcnow() + datetime.timedelta(seconds=settings.JWT_EXP_DELTA_SECONDS)
+      'user_id': user.pk,
+      'username': user.intra,
+      'exp': timezone.now() + timedelta(seconds=min(settings.JWT_EXP_DELTA_SECONDS, token['expires_in']))
   }
   token = jwt.encode(payload, settings.JWT_SECRET, algorithm=settings.JWT_ALGORITHM)
-  return JsonResponse({'token': token, 'user': user_info, 'raw': resp.text})
+  resp = redirect('/')
+  resp.set_cookie('ford-johnson-sort', token)
+  return resp
