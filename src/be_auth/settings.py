@@ -40,7 +40,8 @@ ALLOWED_HOSTS = os.environ.get('ALLOWED_HOSTS', 'localhost').split(',')
 # Application definition
 
 INSTALLED_APPS = [
-    'oauth.apps.OauthConfig'
+    'oauth.apps.OauthConfig',
+    'mfa.apps.MfaConfig'
 ]
 
 MIDDLEWARE = [
