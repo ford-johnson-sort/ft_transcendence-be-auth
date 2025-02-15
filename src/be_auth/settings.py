@@ -41,13 +41,6 @@ CSRF_TRUSTED_ORIGINS = [f"https://{u}" for u in os.environ.get('ALLOWED_HOSTS', 
 # Application definition
 
 INSTALLED_APPS = [
-    # common db model
-    'be_auth_model',
-    # login - OAuth
-    'oauth.apps.OauthConfig',
-    # login - mfa
-    'mfa.apps.MfaConfig',
-
     # admin page
     'django.contrib.admin',
     'django.contrib.auth',
@@ -55,22 +48,21 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
+
+    # common db model
+    'be_auth_model.apps.ModelConfig',
+    # login - OAuth
+    'oauth.apps.OauthConfig',
+    # login - mfa
+    'mfa.apps.MfaConfig',
 ]
 
 MIDDLEWARE = [
     # admin page
-    # 'django.contrib.sessions.middleware.SessionMiddleware', 
-    # 'django.contrib.auth.middleware.AuthenticationMiddleware', 
-    # 'django.contrib.messages.middleware.MessageMiddleware',
-    # 'django.middleware.csrf.CsrfViewMiddleware'
-
-    'django.middleware.security.SecurityMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
-    'django.middleware.common.CommonMiddleware',
-    'django.middleware.csrf.CsrfViewMiddleware',
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
-    'django.middleware.clickjacking.XFrameOptionsMiddleware',
+    'django.middleware.csrf.CsrfViewMiddleware'
 ]
 
 ROOT_URLCONF = 'be_auth.urls'

@@ -12,4 +12,8 @@ class UserOauthInformation(models.Model):
     )
     token_access = models.CharField(max_length=64)
     token_refresh = models.CharField(max_length=64)
-    token_expire = models.DateTimeField()
+    token_expire = models.DateTimeField("token expire")
+
+    class Meta:
+        verbose_name = "User Login Information"
+        verbose_name_plural = "User Login Informations"

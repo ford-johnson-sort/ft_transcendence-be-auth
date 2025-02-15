@@ -8,5 +8,9 @@ class User(models.Model):
     name = models.CharField()
     email = models.EmailField()
 
+    class Meta:
+        verbose_name = "User"
+        verbose_name_plural = "Users"
+
 
 # TODO: design database schema
