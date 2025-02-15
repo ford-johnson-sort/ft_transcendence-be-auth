@@ -2,18 +2,16 @@ name: Deploy to VPC
 
 on:
   workflow_run:
-    workflows: ["Pylint"]  # Name of the lint workflow to wait for
+    workflows: [Pylint]  # Name of the lint workflow to wait for
     branches: [main]       # Only run if the commit was on main
-    types:
-      - completed
+    types: [completed]
 
 jobs:
   deploy:
     runs-on: ubuntu-latest
-    # Use "if: always()" if you want the deploy steps to run regardless of the lint outcome.
     steps:
       - name: Trigger Deployment on VPC
-        if: always()
+        if: ${{ always() }}
         uses: appleboy/ssh-action@v1.2.0
         with:
           host: ${{ secrets.VPC_HOST }}
