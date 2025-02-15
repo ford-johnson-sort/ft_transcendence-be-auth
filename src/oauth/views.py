@@ -11,7 +11,7 @@ from django.conf import settings
 from django.shortcuts import redirect
 from django.urls import reverse
 
-from .models import User
+from .models import User, UserOauthInformation
 
 
 def oauth_index(request):
@@ -69,30 +69,33 @@ def oauth_callback(request):
     profile = profile.json()
 
     # write user information to Database
-    user = User.objects.filter(intra=profile['login']).first()
-    new_user = user is None
+    user_oauth = User.objects.filter(intra=profile['login']).first()
+    new_user = user_oauth is None
     if new_user:
         user = User(
             intra=profile['login'],
             name=profile['usual_full_name'],
             email=profile['email'],
-
+        )
+        user.save()
+        user_oauth = UserOauthInformation(
+            user=user,
             token_access=token['access_token'],
             token_refresh=token['refresh_token'],
             token_expire=timezone.now() +
             timedelta(seconds=token['expires_in'])
         )
     else:
-        user.token_access = token['access_token']
-        user.token_refresh = token['refresh_token']
-        user.token_expire = timezone.now() + \
+        user_oauth.token_access = token['access_token']
+        user_oauth.token_refresh = token['refresh_token']
+        user_oauth.token_expire = timezone.now() + \
             timedelta(seconds=token['expires_in'])
-    user.save()
+    user_oauth.save()
 
     # create JWT and return
     payload = {
-        'user_id': user.pk,
-        'username': user.intra,
+        'user_id': user_oauth.pk,
+        'username': user_oauth.intra,
         'exp': (timezone.now() + timedelta(seconds=min(settings.JWT_EXP_DELTA_SECONDS, token['expires_in']))).timestamp()
     }
     token = jwt.encode(payload, settings.JWT_SECRET,
