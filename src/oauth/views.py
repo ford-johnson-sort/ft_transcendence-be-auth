@@ -1,7 +1,5 @@
 from urllib.parse import urlencode
 from datetime import timedelta
-import json
-import base64
 
 import jwt
 import requests
@@ -10,10 +8,14 @@ from django.utils import timezone
 from django.conf import settings
 from django.shortcuts import redirect
 from django.urls import reverse
+from django.views.decorators.http import require_GET
+
+from mfa.utils import email_2fa_send
 
 from .models import User, UserOauthInformation
 
 
+@require_GET
 def oauth_index(request):
     """checks for user cookie, and redirects to 42 API if needed"""
     # TODO: check user has already authenticated
@@ -28,6 +30,7 @@ def oauth_index(request):
 # TODO: use refresh token
 
 
+@require_GET
 def oauth_callback(request):
     """handles OAuth callback from 42 API"""
     # fetch token from 42 API
@@ -69,8 +72,8 @@ def oauth_callback(request):
     profile = profile.json()
 
     # write user information to Database
-    user_oauth = User.objects.filter(intra=profile['login']).first()
-    new_user = user_oauth is None
+    user = User.objects.filter(intra=profile['login']).first()
+    new_user = user is None
     if new_user:
         user = User(
             intra=profile['login'],
@@ -86,28 +89,23 @@ def oauth_callback(request):
             timedelta(seconds=token['expires_in'])
         )
     else:
+        user_oauth = UserOauthInformation.objects.get(user=user)
         user_oauth.token_access = token['access_token']
         user_oauth.token_refresh = token['refresh_token']
         user_oauth.token_expire = timezone.now() + \
             timedelta(seconds=token['expires_in'])
     user_oauth.save()
 
-    # create JWT and return
+    # send 2FA email to user
+    challenge = email_2fa_send(user_oauth.user)
+
+    # set temporary cookie then return
     payload = {
         'user_id': user_oauth.user.pk,
-        'username': user_oauth.user.intra,
-        'exp': (timezone.now() +
-                timedelta(seconds=min(
-                    settings.JWT_EXP_DELTA_SECONDS, token['expires_in']))
-                ).timestamp()
+        'challenge_id': challenge.pk
     }
     token = jwt.encode(payload, settings.JWT_SECRET,
                        algorithm=settings.JWT_ALGORITHM)
     resp = redirect('/')
-    resp.set_cookie('ford-johnson-sort', token, secure=True, httponly=True)
-    resp.set_cookie('merge-insertion-sort',
-                    base64.urlsafe_b64encode(
-                        json.dumps(payload).encode()
-                    ).rstrip(b'=').decode(),
-                    secure=True, httponly=False)
+    resp.set_cookie('waiting-for-2fa', token, secure=True, httponly=True)
     return resp

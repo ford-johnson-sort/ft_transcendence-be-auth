@@ -3,4 +3,5 @@ from . import views
 
 app_name = "mfa"
 urlpatterns = [
+    path('mail', views.email_2fa_challenge, name='email_2fa_challenge')
 ]
