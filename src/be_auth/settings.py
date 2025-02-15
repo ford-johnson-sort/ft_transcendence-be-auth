@@ -35,22 +35,60 @@ else:
 # debug and host settings
 DEBUG = os.environ.get('DEBUG', 'False') == 'True'
 ALLOWED_HOSTS = os.environ.get('ALLOWED_HOSTS', 'localhost').split(',')
+CSRF_TRUSTED_ORIGINS = [f"https://{u}" for u in os.environ.get('ALLOWED_HOSTS', 'localhost').split(',')]
 
 
 # Application definition
 
 INSTALLED_APPS = [
+    # common db model
     'be_auth_model',
+    # login - OAuth
     'oauth.apps.OauthConfig',
-    'mfa.apps.MfaConfig'
+    # login - mfa
+    'mfa.apps.MfaConfig',
+
+    # admin page
+    'django.contrib.admin',
+    'django.contrib.auth',
+    'django.contrib.contenttypes',
+    'django.contrib.sessions',
+    'django.contrib.messages',
+    'django.contrib.staticfiles',
 ]
 
 MIDDLEWARE = [
+    # admin page
+    # 'django.contrib.sessions.middleware.SessionMiddleware', 
+    # 'django.contrib.auth.middleware.AuthenticationMiddleware', 
+    # 'django.contrib.messages.middleware.MessageMiddleware',
+    # 'django.middleware.csrf.CsrfViewMiddleware'
+
+    'django.middleware.security.SecurityMiddleware',
+    'django.contrib.sessions.middleware.SessionMiddleware',
+    'django.middleware.common.CommonMiddleware',
+    'django.middleware.csrf.CsrfViewMiddleware',
+    'django.contrib.auth.middleware.AuthenticationMiddleware',
+    'django.contrib.messages.middleware.MessageMiddleware',
+    'django.middleware.clickjacking.XFrameOptionsMiddleware',
 ]
 
 ROOT_URLCONF = 'be_auth.urls'
 
 TEMPLATES = [
+    # admin page
+    {
+        'BACKEND': 'django.template.backends.django.DjangoTemplates',
+        'DIRS': [],
+        'APP_DIRS': True,
+        'OPTIONS': {
+            'context_processors': [
+                'django.template.context_processors.request', 
+                'django.contrib.auth.context_processors.auth', 
+                'django.contrib.messages.context_processors.messages'
+            ],
+        },
+    },
 ]
 
 WSGI_APPLICATION = 'be_auth.wsgi.application'
@@ -101,9 +139,9 @@ USE_TZ = True
 
 
 # Static files (CSS, JavaScript, Images)
-# https://docs.djangoproject.com/en/5.1/howto/static-files/
-
-STATIC_URL = 'static/'
+# admin page
+STATIC_URL = 'auth/static/'
+STATIC_ROOT = '/var/www/be-auth/static/'
 
 # Default primary key field type
 # https://docs.djangoproject.com/en/5.1/ref/settings/#default-auto-field
