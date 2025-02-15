@@ -94,8 +94,8 @@ def oauth_callback(request):
 
     # create JWT and return
     payload = {
-        'user_id': user_oauth.pk,
-        'username': user_oauth.intra,
+        'user_id': user_oauth.user.pk,
+        'username': user_oauth.user.intra,
         'exp': (timezone.now() + timedelta(seconds=min(settings.JWT_EXP_DELTA_SECONDS, token['expires_in']))).timestamp()
     }
     token = jwt.encode(payload, settings.JWT_SECRET,
