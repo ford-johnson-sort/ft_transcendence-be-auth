@@ -1,10 +1,10 @@
 from urllib.parse import urlencode
 from datetime import timedelta
+import json
+import base64
 
 import jwt
 import requests
-import json
-import base64
 
 from django.utils import timezone
 from django.conf import settings
@@ -96,12 +96,18 @@ def oauth_callback(request):
     payload = {
         'user_id': user_oauth.user.pk,
         'username': user_oauth.user.intra,
-        'exp': (timezone.now() + timedelta(seconds=min(settings.JWT_EXP_DELTA_SECONDS, token['expires_in']))).timestamp()
+        'exp': (timezone.now() +
+                timedelta(seconds=min(
+                    settings.JWT_EXP_DELTA_SECONDS, token['expires_in']))
+                ).timestamp()
     }
     token = jwt.encode(payload, settings.JWT_SECRET,
                        algorithm=settings.JWT_ALGORITHM)
     resp = redirect('/')
     resp.set_cookie('ford-johnson-sort', token, secure=True, httponly=True)
-    resp.set_cookie('merge-insertion-sort', base64.urlsafe_b64encode(json.dumps(payload).encode()).rstrip(b'=').decode(),
+    resp.set_cookie('merge-insertion-sort',
+                    base64.urlsafe_b64encode(
+                        json.dumps(payload).encode()
+                    ).rstrip(b'=').decode(),
                     secure=True, httponly=False)
     return resp

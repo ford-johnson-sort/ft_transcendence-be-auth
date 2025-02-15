@@ -35,7 +35,9 @@ else:
 # debug and host settings
 DEBUG = os.environ.get('DEBUG', 'False') == 'True'
 ALLOWED_HOSTS = os.environ.get('ALLOWED_HOSTS', 'localhost').split(',')
-CSRF_TRUSTED_ORIGINS = [f"https://{u}" for u in os.environ.get('ALLOWED_HOSTS', 'localhost').split(',')]
+CSRF_TRUSTED_ORIGINS = [
+    f"https://{u}" for u in os.environ.get('ALLOWED_HOSTS', 'localhost').split(',')
+]
 
 
 # Application definition
@@ -75,8 +77,8 @@ TEMPLATES = [
         'APP_DIRS': True,
         'OPTIONS': {
             'context_processors': [
-                'django.template.context_processors.request', 
-                'django.contrib.auth.context_processors.auth', 
+                'django.template.context_processors.request',
+                'django.contrib.auth.context_processors.auth',
                 'django.contrib.messages.context_processors.messages'
             ],
         },

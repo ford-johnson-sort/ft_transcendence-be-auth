@@ -1,11 +1,11 @@
 from django.contrib import admin
-from django.contrib.auth.models import User as DjangoUser
-from django.contrib.auth.models import Group as DjangoGroup
+import django.contrib.auth.models as DjangoAuthModel
 
 from .models import User
 
 
 class UserAdmin(admin.ModelAdmin):
+    """admin page view for managing user"""
     fields = ["intra", "email"]
 
 
@@ -13,5 +13,5 @@ class UserAdmin(admin.ModelAdmin):
 admin.site.register(User, UserAdmin)
 
 # unregister Django auth models (not used)
-admin.site.unregister(DjangoUser)
-admin.site.unregister(DjangoGroup)
+admin.site.unregister(DjangoAuthModel.User)
+admin.site.unregister(DjangoAuthModel.Group)
