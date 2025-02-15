@@ -17,3 +17,6 @@ class UserOauthInformation(models.Model):
     class Meta:
         verbose_name = "User Login Information"
         verbose_name_plural = "User Login Informations"
+
+    def __str__(self) -> str:
+        return f"{self.user} - token expiration: {self.token_expire}"

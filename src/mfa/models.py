@@ -17,3 +17,6 @@ class User2FALogs(models.Model):
     class Meta:
         verbose_name = "User 2FA Information"
         verbose_name_plural = "User 2FA Informations"
+
+    def __str__(self) -> str:
+        return f"{self.user} - logged in at {self.login}"
