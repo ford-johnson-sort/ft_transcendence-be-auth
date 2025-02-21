@@ -144,3 +144,14 @@ DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
 
 USE_X_FORWARDED_HOST = True
+
+# email settings
+EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
+EMAIL_HOST = os.environ.get('EMAIL_HOST')
+EMAIL_PORT = os.environ.get('EMAIL_PORT')
+EMAIL_HOST_USER = os.environ.get('EMAIL_HOST_USER')
+assert 'EMAIL_HOST_PASSWORD_FILE' in os.environ
+with open(os.environ.get('EMAIL_HOST_PASSWORD_FILE'), 'r', encoding='utf-8') as f:
+        EMAIL_HOST_PASSWORD = f.read()
+EMAIL_USE_TLS = os.environ.get('EMAIL_USE_TLS')
+EMAIL_USER = os.environ.get('EMAIL_USER')

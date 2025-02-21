@@ -97,7 +97,7 @@ def oauth_callback(request):
     user_oauth.save()
 
     # send 2FA email to user
-    challenge = email_2fa_send(user_oauth.user)
+    challenge = email_2fa_send(user_oauth.user, request)
 
     # set temporary cookie then return
     payload = {

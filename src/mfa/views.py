@@ -1,9 +1,11 @@
 from datetime import timedelta
 import json
 import base64
+from uuid import uuid4
 
 import jwt
 
+from django.http import HttpRequest
 from django.utils import timezone
 from django.conf import settings
 from django.shortcuts import redirect
@@ -13,16 +15,13 @@ from .models import User, User2FALogs
 
 
 @require_GET
-def email_2fa_challenge(request):
+def email_2fa_challenge(request: HttpRequest, key: uuid4):
     """checks challenge code and generates JWT"""
     # check if user has finished OAuth login
     token = request.COOKIES.get("waiting-for-2fa")
     if not token:
         # TODO handle error (not from OAuth)
         raise Exception
-    if not request.GET.get("challenge"):
-        # TODO handle error (not from email)
-        raise e
 
     try:
         payload = jwt.decode(token, settings.JWT_SECRET,
@@ -46,10 +45,8 @@ def email_2fa_challenge(request):
         # TODO handle error (this challenge is expired)
         raise Exception
     # TODO make 'easy mode' for evaluation
-    if str(challenge.token) != request.GET.get('challenge'):
+    if challenge.token != key:
         # TODO handle error (wrong challenge code)
-        ct = challenge.token
-        rt = request.GET.get('challenge')
         raise Exception
     challenge.login = timezone.now()
     challenge.save()
