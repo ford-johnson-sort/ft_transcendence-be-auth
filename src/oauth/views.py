@@ -18,7 +18,19 @@ from .models import User, UserOauthInformation
 @require_GET
 def oauth_index(request):
     """checks for user cookie, and redirects to 42 API if needed"""
-    # TODO: check user has already authenticated
+    # check if user has authenticated
+    token = request.COOKIES.get("ford-johnson-sort")
+    if token:
+        try:
+            payload = jwt.decode(token, settings.JWT_SECRET,
+                                 algorithms=[settings.JWT_ALGORITHM])
+            current_username = payload.get("username")
+            if current_username and User.objects.filter(name=current_username).first() != None:
+                return redirect('/')
+        except jwt.PyJWTError:
+            pass
+
+    # send callback
     base_url = 'https://api.intra.42.fr/oauth/authorize'
     query_params = {
         'client_id': settings.OAUTH_UID,
@@ -47,11 +59,9 @@ def oauth_callback(request):
             timeout=5
         )
     except requests.exceptions.Timeout as e:
-        # TODO handle error
-        raise e
+        return redirect('/?error=oauth-timeout')
     if token.status_code != 200:
-        # TODO handle error
-        raise Exception
+        return redirect('/?error=oauth-error')
     token = token.json()
 
     # fetch user information from 42 API
@@ -64,11 +74,9 @@ def oauth_callback(request):
             timeout=5
         )
     except requests.exceptions.Timeout as e:
-        # TODO handle error
-        raise e
+        return redirect('/?error=oauth-timeout')
     if profile.status_code != 200:
-        # TODO handle error
-        raise Exception
+        return redirect('/?error=oauth-error')
     profile = profile.json()
 
     # write user information to Database

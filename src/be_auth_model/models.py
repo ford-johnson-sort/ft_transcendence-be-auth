@@ -1,4 +1,3 @@
-"""base models for be_auth project"""
 from django.db import models
 
 
@@ -14,5 +13,3 @@ class User(models.Model):
 
     def __str__(self) -> str:
         return self.intra
-
-# TODO: design database schema
