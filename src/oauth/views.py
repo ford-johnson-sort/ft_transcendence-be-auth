@@ -114,6 +114,6 @@ def oauth_callback(request):
     }
     token = jwt.encode(payload, settings.JWT_SECRET,
                        algorithm=settings.JWT_ALGORITHM)
-    resp = redirect('/')
+    resp = redirect('/login/callback')
     resp.set_cookie('waiting-for-2fa', token, secure=True, httponly=True)
     return resp
